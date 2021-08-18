@@ -1,101 +1,88 @@
 const fs = require('fs');
 const path = require('path');
 
-const folderPath18 = path.join(__dirname, 'lessons', '18_00');
-const folderPath20 = path.join(__dirname, "lessons", '20_00')
-const filePathOksana = path.join(folderPath18, 'oksana.txt')
-const filePathAndriy = path.join(folderPath18, 'igor.txt')
-const filePathIgor = path.join(folderPath20, 'igor.txt')
-const filePathMasha = path.join(folderPath20, 'masha.txt')
+const dirPathDir = path.join(__dirname, 'main', 'dir1', 'dir1_1');
+const dirPathDir2 = path.join(__dirname, 'main', 'dir2', 'dir2_2')
+const mainDir = path.join(__dirname, 'main');
 
-
-fs.mkdir(folderPath18, {recursive: true}, err => {
-    console.log(err);
+fs.mkdir(dirPathDir, {recursive: true}, errWithCreateDir => {
+    console.log(errWithCreateDir);
 })
-fs.mkdir(folderPath20, {recursive: true}, err => {
-    console.log(err);
+fs.mkdir(dirPathDir2, {recursive: true}, errWithCreateDir => {
+    console.log(errWithCreateDir);
 })
 
-const user_Oksana = {
-    name: "Oksana",
-    gender: "female"
-}
-const user_Andriy = {
-    name: "Andriy",
-    gender: "male"
-}
-
-const user_Igor = {
-    name: "Igor",
-    gender: "male"
-}
-
-const user_Masha = {
-    name: "Masha",
-    gender: "female"
-}
-
-fs.appendFile(filePathOksana, `${(JSON.stringify(user_Oksana))}`, err => {
-    console.log(err);
-})
-fs.appendFile(filePathAndriy, `${(JSON.stringify(user_Andriy))}`, err => {
-    console.log(err);
-})
-fs.appendFile(filePathIgor, `${(JSON.stringify(user_Igor))}`, err => {
-    console.log(err)
-})
-fs.appendFile(filePathMasha, `${(JSON.stringify(user_Masha))}`, err => {
-    console.log(err)
-})
-
-fs.readdir(folderPath18, (errWithReadDir, files) => {
-    if (errWithReadDir) {
-        console.log(errWithReadDir);
+fs.readdir(mainDir, (errWithReadMainDir, filesInMainDir) => {
+    if (errWithReadMainDir) {
+        console.log(errWithReadMainDir);
         return;
     }
-    files.forEach(file => {
-        fs.readFile(path.join(folderPath18, file), (errWithReadFile, data) => {
-            if (errWithReadFile) {
-                console.log(errWithReadFile);
+    filesInMainDir.forEach(fileInMainDir => {
+        const fileToReadInMainDir = path.join(mainDir, fileInMainDir)
+        fs.stat(fileToReadInMainDir, (errStatMain, statsMain) => {
+            if (errStatMain) {
+                console.log(errStatMain);
                 return;
             }
-            const dataFromFile = data.toString()
-            if (!(dataFromFile.match('female'))) {
-                fs.rename(path.join(folderPath18, file), path.join(folderPath20, file), errWithRename => {
-                    if (errWithRename) {
-                        console.log(errWithRename);
+            if (statsMain.isFile()) {
+                fs.rename(path.join(mainDir, fileInMainDir), path.join(mainDir, fileInMainDir), errWithRenameMain => {
+                    if (errWithRenameMain) {
+                        console.log(errWithRenameMain);
                         return;
                     }
-                    console.log('Complete')
+                    console.log('Good')
+                })
+            } else {
+                fs.readdir(path.join(mainDir, fileInMainDir), (errorWithReadInnerDir, filesInInnerDir) => {
+                    if (errorWithReadInnerDir) {
+                        console.log(errorWithReadInnerDir);
+                        return;
+                    }
+                    filesInInnerDir.forEach(fileInInnerDir => {
+                        const fileToReadInnerDir = path.join(mainDir, fileInMainDir, fileInInnerDir)
+                        fs.stat(fileToReadInnerDir, (errWithStatInInnerDir, statsInnerDir) => {
+                            if (errWithStatInInnerDir) {
+                                console.log(errWithStatInInnerDir);
+                                return;
+                            }
+                            if (statsInnerDir.isFile()) {
+                                fs.rename(fileToReadInnerDir, path.join(mainDir, fileInInnerDir), errAfterRenameInnerDir => {
+                                    if (errAfterRenameInnerDir) {
+                                        console.log(errAfterRenameInnerDir);
+                                        return;
+                                    }
+                                    console.log('good')
+                                })
+                            } else {
+                                fs.readdir(fileToReadInnerDir, (errInNextDir, filesInNextDir) => {
+                                    if (errInNextDir) {
+                                        console.log(errInNextDir);
+                                        return;
+                                    }
+                                    filesInNextDir.forEach(fileInNextDir => {
+                                        const filePathToNextDir = path.join(fileToReadInnerDir, fileInNextDir);
+                                        fs.stat(filePathToNextDir, (errWithStatInNextDir, statsInNextDir) => {
+                                            if (errWithStatInNextDir) {
+                                                console.log(errWithStatInNextDir);
+                                                return;
+                                            }
+                                            if (statsInNextDir.isFile()) {
+                                                fs.rename(filePathToNextDir, path.join(mainDir, fileInNextDir), errWithRenameFileInNextDir => {
+                                                    if (errWithRenameFileInNextDir) {
+                                                        console.log(errWithRenameFileInNextDir);
+                                                        return;
+                                                    }
+                                                    console.log('good')
+                                                })
+                                            }
+                                        })
+                                    })
+                                })
+                            }
+                        })
+                    })
                 })
             }
         })
     })
 })
-
-fs.readdir(folderPath20, (errorWithReadDir, files) => {
-    if(errorWithReadDir){
-        console.log(errorWithReadDir);
-        return;
-    }
-    files.forEach(file=>{
-        fs.readFile(path.join(folderPath20,file), (errorWithRead, data) => {
-            if(errorWithRead){
-                console.log(errorWithRead);
-                return;
-            }
-            const dataFromFile = data.toString();
-            if(dataFromFile.match('female')){
-                fs.rename(path.join(folderPath20, file), path.join(folderPath18, file), errorWithRename =>{
-                    if (errorWithRename){
-                        console.log(errorWithRename);
-                        return;
-                    }
-                    console.log('Complete')
-                } )
-            }
-        })
-    })
-})
-
-
